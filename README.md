@@ -98,17 +98,35 @@ Rotas protegidas exigem header `Authorization: Bearer <jwt>` HS256 emitido pelo 
 
 ## Testes automatizados (Playwright)
 
-O frontend tem uma suite E2E que cobre proteção de rotas, fluxo de OAuth (até o redirect para o GitHub), interações do jogo (revelar, bandeira, derrota, vitória) e persistência do score.
+O frontend tem uma suite E2E (12 testes) que cobre:
+
+- Proteção de rotas via middleware (`/` e `/ranking` redirecionam para `/login` sem sessão)
+- Fluxo de OAuth até o redirect para o GitHub
+- Interações do jogo: clique esquerdo revela, clique direito coloca bandeira, primeira jogada nunca em mina, flood fill, derrota ao clicar em mina, **vitória → POST /scores → score persistido no ranking**
 
 ```bash
+# 1. Backend e Postgres precisam estar rodando (ver "Como rodar")
+
+# 2. Build do frontend com hook de E2E e start em background
 cd frontend
 pnpm exec playwright install chromium      # primeira vez
 NEXT_PUBLIC_E2E=true pnpm build
-NEXT_PUBLIC_E2E=true NEXTAUTH_URL=http://localhost:3000 AUTH_TRUST_HOST=true pnpm start &
+NEXT_PUBLIC_E2E=true AUTH_TRUST_HOST=true pnpm start &
+
+# 3. Rodar os testes
 pnpm exec playwright test
 ```
 
-A suite usa uma sessão NextAuth sintética (assinada com o `NEXTAUTH_SECRET` local) para pular o fluxo OAuth do GitHub e exercitar o app autenticado de ponta a ponta.
+A suite usa uma sessão NextAuth sintética (JWE encodado com o mesmo `NEXTAUTH_SECRET` local) para pular o fluxo OAuth do GitHub e exercitar o app autenticado de ponta a ponta — não depende de credenciais reais nem da rede do GitHub. A flag `NEXT_PUBLIC_E2E=true` expõe `window.__game` somente em build de teste, sem vazar em produção.
+
+## Decisões de arquitetura
+
+- **JWT compartilhado**: o NextAuth (frontend) assina um JWT HS256 com `NEXTAUTH_SECRET` no callback `jwt` e o expõe na sessão como `backendJwt`. O backend valida o mesmo token com o mesmo secret no `AuthGuard`. Evita round-trip ao GitHub a cada request e mantém o backend stateless.
+- **Middleware de proteção via cookie direto**: o middleware do Next checa a presença do cookie de sessão sem usar o wrapper do NextAuth — evita problemas conhecidos do `UntrustedHost` no v5 beta e simplifica o edge runtime.
+- **Repository Pattern**: o módulo `scores` separa controller / service / repository. O `ScoresRepository` encapsula o `Repository<Score>` do TypeORM, permitindo trocar a fonte de dados sem mexer no service.
+- **DTO validation com `class-validator`**: `CreateScoreDto` impõe enum em `boardSize` e bounds em `timeMs` (mínimo 1s, máximo 1h) — evita scores fraudulentos.
+- **Flood fill BFS com ponteiro**: a revelação em cascata usa índice de ponteiro em vez de `Array.shift()` (O(n)) — escala em boards 30x16 sem regressão de performance.
+- **Primeira jogada nunca em mina**: o tabuleiro só é gerado **depois** do primeiro clique, garantindo célula inicial segura (comportamento clássico do Campo Minado).
 
 ## Licença
 
