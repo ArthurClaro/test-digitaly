@@ -15,21 +15,20 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         if (avatar) {
           token.picture = avatar;
         }
+        const secret = process.env.NEXTAUTH_SECRET;
+        if (secret && token.sub) {
+          token.backendJwt = jwt.sign(
+            {
+              sub: token.sub,
+              name: token.name,
+              email: token.email,
+              picture: token.picture,
+            },
+            secret,
+            { algorithm: JWT_ALGORITHM, expiresIn: JWT_EXPIRES_IN },
+          );
+        }
       }
-      const secret = process.env.NEXTAUTH_SECRET;
-      if (!secret) {
-        return token;
-      }
-      token.backendJwt = jwt.sign(
-        {
-          sub: token.sub,
-          name: token.name,
-          email: token.email,
-          picture: token.picture,
-        },
-        secret,
-        { algorithm: JWT_ALGORITHM, expiresIn: JWT_EXPIRES_IN },
-      );
       return token;
     },
     async session({ session, token }) {

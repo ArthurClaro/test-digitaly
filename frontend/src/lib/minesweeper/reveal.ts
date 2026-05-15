@@ -37,11 +37,13 @@ export function revealCell(board: Board, row: number, col: number): Board {
   const rows = next.length;
   const cols = next[0].length;
   const queue: Array<[number, number]> = [[row, col]];
+  let head = 0;
 
-  while (queue.length > 0) {
-    const [r, c] = queue.shift()!;
+  while (head < queue.length) {
+    const [r, c] = queue[head];
+    head += 1;
     const cell = next[r][c];
-    if (cell.isRevealed || cell.isFlagged) {
+    if (cell.isRevealed) {
       continue;
     }
     cell.isRevealed = true;
@@ -52,7 +54,7 @@ export function revealCell(board: Board, row: number, col: number): Board {
         const nc = c + dc;
         if (nr >= 0 && nr < rows && nc >= 0 && nc < cols) {
           const neighbor = next[nr][nc];
-          if (!neighbor.isRevealed && !neighbor.isFlagged && !neighbor.isMine) {
+          if (!neighbor.isRevealed && !neighbor.isMine) {
             queue.push([nr, nc]);
           }
         }

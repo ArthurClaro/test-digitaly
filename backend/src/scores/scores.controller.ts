@@ -16,11 +16,11 @@ import { Score } from './score.entity';
 import { BOARD_SIZES, BoardSize } from '../constants';
 
 @Controller('scores')
-@UseGuards(AuthGuard)
 export class ScoresController {
   constructor(private readonly service: ScoresService) {}
 
   @Post()
+  @UseGuards(AuthGuard)
   async create(
     @Body() dto: CreateScoreDto,
     @CurrentUser() user: JwtUserPayload,

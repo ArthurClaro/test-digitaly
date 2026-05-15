@@ -1,5 +1,8 @@
-import { IsEnum, IsInt, IsPositive } from 'class-validator';
+import { IsEnum, IsInt, Max, Min } from 'class-validator';
 import { BOARD_SIZES, BoardSize } from '../../constants';
+
+const MIN_TIME_MS = 1_000;
+const MAX_TIME_MS = 3_600_000;
 
 export class CreateScoreDto {
   @IsEnum(BOARD_SIZES, {
@@ -8,6 +11,7 @@ export class CreateScoreDto {
   boardSize!: BoardSize;
 
   @IsInt({ message: 'timeMs must be an integer' })
-  @IsPositive({ message: 'timeMs must be greater than 0' })
+  @Min(MIN_TIME_MS, { message: `timeMs must be at least ${MIN_TIME_MS}` })
+  @Max(MAX_TIME_MS, { message: `timeMs must be at most ${MAX_TIME_MS}` })
   timeMs!: number;
 }
