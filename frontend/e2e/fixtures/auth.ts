@@ -2,8 +2,14 @@ import { test as base, type BrowserContext } from '@playwright/test';
 import { encode } from 'next-auth/jwt';
 import jwt from 'jsonwebtoken';
 
-const NEXTAUTH_SECRET =
-  process.env.NEXTAUTH_SECRET ?? '4rf0dhDV5eOXzpKFHLhCN9yEftMn88IUcd93u4LdDH4=';
+function getSecret(): string {
+  const secret = process.env.NEXTAUTH_SECRET;
+  if (!secret) {
+    throw new Error('NEXTAUTH_SECRET must be set to run e2e tests');
+  }
+  return secret;
+}
+
 const BASE_URL = process.env.TEST_FRONTEND_URL ?? 'http://127.0.0.1:3050';
 
 export const TEST_USER = {
@@ -14,6 +20,7 @@ export const TEST_USER = {
 } as const;
 
 export async function injectAuthCookies(context: BrowserContext): Promise<void> {
+  const secret = getSecret();
   const backendJwt = jwt.sign(
     {
       sub: TEST_USER.sub,
@@ -21,7 +28,7 @@ export async function injectAuthCookies(context: BrowserContext): Promise<void> 
       email: TEST_USER.email,
       picture: TEST_USER.picture,
     },
-    NEXTAUTH_SECRET,
+    secret,
     { algorithm: 'HS256', expiresIn: '1h' },
   );
 
@@ -33,7 +40,7 @@ export async function injectAuthCookies(context: BrowserContext): Promise<void> 
       picture: TEST_USER.picture,
       backendJwt,
     },
-    secret: NEXTAUTH_SECRET,
+    secret,
     salt: 'authjs.session-token',
     maxAge: 60 * 60,
   });

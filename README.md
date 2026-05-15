@@ -73,12 +73,12 @@ App em `http://localhost:3000`.
 
 ## API
 
-| Método | Rota                  | Descrição                             |
-|--------|-----------------------|---------------------------------------|
-| POST   | `/scores`             | Salva score do jogador autenticado    |
-| GET    | `/scores/ranking`     | Retorna top 30 (filtro opcional por tamanho) |
+| Método | Rota                  | Auth  | Descrição                                        |
+|--------|-----------------------|-------|--------------------------------------------------|
+| POST   | `/scores`             | sim   | Salva score do jogador autenticado               |
+| GET    | `/scores/ranking`     | não   | Retorna top 30 (filtro opcional `?boardSize=`)   |
 
-Todas as rotas exigem header `Authorization: Bearer <jwt>` emitido pelo NextAuth.
+Rotas protegidas exigem header `Authorization: Bearer <jwt>` HS256 emitido pelo NextAuth (callback `jwt` em `frontend/src/lib/auth.ts`) e validado no backend via `AuthGuard` usando o mesmo `NEXTAUTH_SECRET` compartilhado.
 
 ## Tamanhos de campo
 
@@ -88,13 +88,27 @@ Todas as rotas exigem header `Authorization: Bearer <jwt>` emitido pelo NextAuth
 | 16x16   | 40    |
 | 30x16   | 99    |
 
-## Como testar
+## Como testar manualmente
 
 1. Acesse `http://localhost:3000` → será redirecionado para `/login`
 2. Faça login com GitHub
 3. Escolha o tamanho do campo e jogue
 4. Em caso de vitória, o score é salvo automaticamente
 5. Acesse `/ranking` para ver o top 30
+
+## Testes automatizados (Playwright)
+
+O frontend tem uma suite E2E que cobre proteção de rotas, fluxo de OAuth (até o redirect para o GitHub), interações do jogo (revelar, bandeira, derrota, vitória) e persistência do score.
+
+```bash
+cd frontend
+pnpm exec playwright install chromium      # primeira vez
+NEXT_PUBLIC_E2E=true pnpm build
+NEXT_PUBLIC_E2E=true NEXTAUTH_URL=http://localhost:3000 AUTH_TRUST_HOST=true pnpm start &
+pnpm exec playwright test
+```
+
+A suite usa uma sessão NextAuth sintética (assinada com o `NEXTAUTH_SECRET` local) para pular o fluxo OAuth do GitHub e exercitar o app autenticado de ponta a ponta.
 
 ## Licença
 
