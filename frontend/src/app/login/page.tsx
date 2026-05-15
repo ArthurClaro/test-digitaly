@@ -1,6 +1,5 @@
-import { signIn, auth } from '@/lib/auth';
+import { auth } from '@/lib/auth';
 import { redirect } from 'next/navigation';
-import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -8,17 +7,12 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Github } from 'lucide-react';
+import { LoginButton } from '@/components/login-button';
 
 export default async function LoginPage() {
   const session = await auth();
-  if (session) {
+  if (session?.user) {
     redirect('/');
-  }
-
-  async function loginWithGitHub() {
-    'use server';
-    await signIn('github', { redirectTo: '/' });
   }
 
   return (
@@ -31,12 +25,7 @@ export default async function LoginPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form action={loginWithGitHub}>
-            <Button type="submit" className="w-full" size="lg">
-              <Github className="h-5 w-5" />
-              Entrar com GitHub
-            </Button>
-          </form>
+          <LoginButton />
         </CardContent>
       </Card>
     </main>
