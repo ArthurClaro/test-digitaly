@@ -5,4 +5,5 @@ export const authConfig: NextAuthConfig = {
   providers: [GitHub],
   session: { strategy: 'jwt' },
   pages: { signIn: '/login' },
+  trustHost: true,
 };

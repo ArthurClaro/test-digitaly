@@ -2,7 +2,7 @@ import 'reflect-metadata';
 import { DataSource } from 'typeorm';
 import { config as loadEnv } from 'dotenv';
 import { Score } from './src/scores/score.entity';
-import { CreateScores0001 } from './src/migrations/0001-create-scores';
+import { CreateScores1715000000000 } from './src/migrations/1715000000000-create-scores';
 
 loadEnv();
 
@@ -14,7 +14,7 @@ const AppDataSource = new DataSource({
   password: process.env.DATABASE_PASS ?? 'digitaly',
   database: process.env.DATABASE_NAME ?? 'digitaly',
   entities: [Score],
-  migrations: [CreateScores0001],
+  migrations: [CreateScores1715000000000],
   synchronize: false,
 });
 

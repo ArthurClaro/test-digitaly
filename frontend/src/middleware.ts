@@ -1,12 +1,19 @@
-import NextAuth from 'next-auth';
-import { NextResponse } from 'next/server';
-import { authConfig } from '@/lib/auth.config';
+import { NextRequest, NextResponse } from 'next/server';
 
-const { auth: middlewareAuth } = NextAuth(authConfig);
+const SESSION_COOKIE_NAMES = [
+  'authjs.session-token',
+  '__Secure-authjs.session-token',
+  'next-auth.session-token',
+  '__Secure-next-auth.session-token',
+];
 
-export default middlewareAuth((req) => {
-  const isLoggedIn = !!req.auth;
+function hasSession(req: NextRequest): boolean {
+  return SESSION_COOKIE_NAMES.some((name) => !!req.cookies.get(name)?.value);
+}
+
+export function middleware(req: NextRequest): NextResponse {
   const { pathname } = req.nextUrl;
+  const isLoggedIn = hasSession(req);
 
   const isProtected = pathname === '/' || pathname.startsWith('/ranking');
   if (isProtected && !isLoggedIn) {
@@ -18,7 +25,7 @@ export default middlewareAuth((req) => {
   }
 
   return NextResponse.next();
-});
+}
 
 export const config = {
   matcher: ['/', '/ranking/:path*', '/login'],
