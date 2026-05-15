@@ -148,6 +148,18 @@ export function GamePage() {
     }
   }, [game.status, game.startedAt, game.endedAt, submitState, submitScore, difficulty]);
 
+  useEffect(() => {
+    if (process.env.NEXT_PUBLIC_E2E !== 'true') {
+      return;
+    }
+    (window as unknown as { __game?: unknown }).__game = {
+      board: game.board,
+      status: game.status,
+      difficulty,
+      submitState,
+    };
+  }, [game.board, game.status, difficulty, submitState]);
+
   const elapsedMs =
     game.startedAt && game.endedAt ? game.endedAt - game.startedAt : 0;
 

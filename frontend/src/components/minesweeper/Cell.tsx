@@ -40,6 +40,12 @@ function CellComponent({ cell, disabled, onReveal, onFlag }: CellProps) {
   const baseClass =
     'flex h-7 w-7 select-none items-center justify-center text-sm font-bold border border-slate-300 transition-colors';
 
+  const dataAttrs = {
+    'data-row': cell.row,
+    'data-col': cell.col,
+    'data-testid': `cell-${cell.row}-${cell.col}`,
+  };
+
   if (!cell.isRevealed) {
     return (
       <button
@@ -48,6 +54,7 @@ function CellComponent({ cell, disabled, onReveal, onFlag }: CellProps) {
         onContextMenu={handleContextMenu}
         disabled={disabled}
         aria-label={cell.isFlagged ? 'Célula com bandeira' : 'Célula oculta'}
+        {...dataAttrs}
         className={cn(
           baseClass,
           'bg-slate-300 hover:bg-slate-200 active:bg-slate-100',
@@ -62,6 +69,7 @@ function CellComponent({ cell, disabled, onReveal, onFlag }: CellProps) {
   if (cell.isMine) {
     return (
       <div
+        {...dataAttrs}
         className={cn(
           baseClass,
           cell.isExploded ? 'bg-red-500' : 'bg-slate-100',
@@ -75,6 +83,7 @@ function CellComponent({ cell, disabled, onReveal, onFlag }: CellProps) {
 
   return (
     <div
+      {...dataAttrs}
       className={cn(
         baseClass,
         'bg-slate-100',

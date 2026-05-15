@@ -15,7 +15,11 @@ async function bootstrap(): Promise<void> {
     }),
   );
 
-  const corsOrigin = config.get<string>('CORS_ORIGIN', 'http://localhost:3000');
+  const corsOrigin = config
+    .get<string>('CORS_ORIGIN', 'http://localhost:3000')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
   app.enableCors({
     origin: corsOrigin,
     credentials: true,
